@@ -1,0 +1,30 @@
+<html>
+  <head>
+    <style>
+      svg {
+        margin: 1em;
+      }
+      .node{
+        stroke: #fff;
+        stroke-width: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <h3>SVG TREEMAP EXAMPLE</h3>
+    <div id="elm"></div>
+
+    <script src="https://d3js.org/d3.v4.js"></script>
+    <script src="//static.redsift.io/reusable/d3-rs-svg/latest/d3-rs-svg.umd-es2015.min.js"></script>
+    <script src="./tracker_data.js"></script>
+    <script src="./d3-rs-treemap.umd-es2015.js"></script>
+    <script>
+      'use strict';
+
+      var first = d3_rs_treemap.html('one');
+      d3.select('#elm')
+        .datum(tracker_data)
+        .call(first);
+    </script>
+  </body>
+</html>
