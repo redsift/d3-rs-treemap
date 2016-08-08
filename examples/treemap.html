@@ -4,10 +4,6 @@
       svg {
         margin: 1em;
       }
-      .node{
-        stroke: #fff;
-        stroke-width: 2px;
-      }
     </style>
   </head>
   <body>
@@ -39,7 +35,7 @@
       var first = d3_rs_treemap.html('one')
         .appendImage(true)
         .imageFallbackLink("test_assets/fa-eye@3x.png")
-        .filter('grayscale');
+        .filter('emboss');
 
       var dElm = d3.select('#elm').datum(tracker_data).call(first);
 

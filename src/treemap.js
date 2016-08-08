@@ -4,7 +4,12 @@
 import { select } from 'd3-selection';
 import { treemap, hierarchy } from 'd3-hierarchy';
 import { scaleOrdinal} from 'd3-scale';
-import { presentation10, display, shadow, emboss, greyscale } from '@redsift/d3-rs-theme';
+import { 
+  presentation10, 
+  display,
+  fonts,
+  widths,
+  shadow, emboss, greyscale } from '@redsift/d3-rs-theme';
 import { html as svg } from '@redsift/d3-rs-svg';
 
 const DEFAULT_SIZE = 960;
@@ -128,8 +133,8 @@ export default function chart(id) {
           _text = d => d.data.v
         } 
         nodes.append('text')
-          .attr('x', d => 15)
-          .attr('y', d => 25)
+          .attr('class', 'node-text')
+          .attr('transform', d => `translate(${(d.x1-d.x0)/2 },${(d.y1-d.y0)/2})`)
           .style('font-size', d => {
             let _w = d.x1-d.x0
             return (_w < 5 ? '10' : _w < 20 ? '15' : '20' ) + 'px'
@@ -212,6 +217,17 @@ export default function chart(id) {
           .attr('height', d => d.y1 - d.y0)
           .attr('fill', ff)
 
+      let _style = style;
+      if (_style == null) {
+        _style = _impl.defaultStyle();
+      }
+
+      var defsEl = snode.select('defs');
+      var styleEl = defsEl.selectAll('style').data(_style ? [ _style ] : []);
+      styleEl.exit().remove();
+      styleEl = styleEl.enter().append('style').attr('type', 'text/css').merge(styleEl);
+      styleEl.text(_style);
+      console.log(display[theme].background)
     })
   }
 
@@ -219,29 +235,24 @@ export default function chart(id) {
 
   _impl.id = function() { return id; };
 
-  // _impl.defaultStyle = () => `
-  //                 ${fonts.variable.cssImport}
-  //                 ${fonts.fixed.cssImport}  
+  _impl.defaultStyle = () => `
+                  ${fonts.variable.cssImport}
+                  ${fonts.fixed.cssImport}  
 
-  //                 ${_impl.self()} text { 
-  //                                       font-family: ${fonts.fixed.family};
-  //                                       font-size: ${fonts.fixed.sizeForWidth(width)};
-  //                                       font-weight: ${fonts.fixed.weightMonochrome}; 
-  //                                       fill: ${display[theme].text}; 
-  //                                     }
-  //                 ${_impl.self()} text.xlabels {
-  //                                       text-anchor: ${xLabelAnchor};
-  //                                       alignment-baseline: ${xLabelBaseline};
-  //                                     }
-  //                 ${_impl.self()} text.ylabels {
-  //                                       text-anchor: end;
-  //                                       alignment-baseline: middle;
-  //                                     }
-  //                 ${_impl.self()} .square {
-  //                                       stroke: ${display[theme].background};
-  //                                       stroke-width: ${widths.grid};
-  //                 }
-  //               `;
+                  ${_impl.self()} text { 
+                                        font-family: ${fonts.fixed.family};
+                                        font-size: ${fonts.fixed.sizeForWidth(width)};
+                                        font-weight: ${fonts.fixed.weightMonochrome}; 
+                                        fill: ${display[theme].text}; 
+                                      }
+                  ${_impl.self()} .node-text { 
+                                        text-anchor: middle;
+                                      }
+                  ${_impl.self()} .node {
+                                        stroke: ${display[theme].background};
+                                        stroke-width: ${widths.grid};
+                  }
+                `;
 
   _impl.classed = function(_) {
     return arguments.length ? (classed = _, _impl) : classed;
@@ -298,8 +309,6 @@ export default function chart(id) {
   _impl.filter = function(_) {
     return arguments.length ? (filter = _, _impl) : filter;
   };
-  //TODO:
-  //1) add default css with stroke and stroke-width
-  //4) height and sh variable
+
   return _impl;
 }
