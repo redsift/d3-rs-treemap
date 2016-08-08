@@ -36,8 +36,12 @@
       // data20.children = tracker_data.children.slice(0,20)
 
 
-      var first = d3_rs_treemap.html('one').margin(0).theme('dark').appendImage(true).imageFallbackLink("test_assets/fa-eye@3x.png");
-      var dElm = d3.select('#elm').datum(data10).call(first);
+      var first = d3_rs_treemap.html('one')
+        .appendImage(true)
+        .imageFallbackLink("test_assets/fa-eye@3x.png")
+        .filter('grayscale');
+
+      var dElm = d3.select('#elm').datum(tracker_data).call(first);
 
       // dElm.datum(changedValues).transition().delay(2500).duration(1000).call(first)
     </script>

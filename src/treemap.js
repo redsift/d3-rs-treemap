@@ -4,12 +4,18 @@
 import { select } from 'd3-selection';
 import { treemap, hierarchy } from 'd3-hierarchy';
 import { scaleOrdinal} from 'd3-scale';
-import { presentation10, display, emboss, greyscale } from '@redsift/d3-rs-theme';
+import { presentation10, display, shadow, emboss, greyscale } from '@redsift/d3-rs-theme';
 import { html as svg } from '@redsift/d3-rs-svg';
 
 const DEFAULT_SIZE = 960;
 const DEFAULT_ASPECT = 1060 / 960;
 const DEFAULT_MARGIN = 26;  // white space
+
+const filtersMap = {
+  'shadow': shadow,
+  'emboss': emboss,
+  'greyscale': greyscale
+}
 
 export default function chart(id) {
   let classed = 'chart-treemap',
@@ -27,23 +33,25 @@ export default function chart(id) {
       appendImage = null,
       imageLink = null,
       imageFallbackLink = null,
-      imCache = {},
-      rqs = [];
+      filter = null;
 
-  function _makeFillFn() {
-    let colors = () => fill;
-    if (fill == null) {
-      let c = presentation10.lighter;
-      // colors = (d, i) => (c[i % c.length]);
-      var t = scaleOrdinal(c)
-      colors = (d, i) => t(d);
-    } else if (typeof fill === 'function') {
-      colors = fill;
-    } else if (Array.isArray(fill)) {
-      colors = (d, i) => scaleOrdinal(fill)(d);
+   function _makeFillFn(onlyArray) {
+    let colors_array = [];
+    if(fill == null){
+      colors_array = presentation10.lighter
+    }else if (Array.isArray(fill)){
+      colors_array = fill
+    }else{
+      colors_array.push(fill)
     }
-    return colors;
-  }
+
+    let t = scaleOrdinal(colors_array)
+    let colors_fn = (d,i) => t(d);
+    if(typeof fill === 'function'){
+      colors_fn = fill;
+    }
+    return onlyArray ? colors_array : colors_fn
+   }
 
   function checkImage(imageSrc, good, bad) {
     var img = new Image();
@@ -83,118 +91,126 @@ export default function chart(id) {
         g = rootG.append('g').attr('class', classed).attr('id', id);
       }
 
-      // for the filters
-      // let fid = 'filter-fill';
-      // if (id) pid = pid + '-' + id;
-      // let pattern = highlights(pid);
-      // snode.call(pattern);
+      let _w = width - 2*margin
+      let _h = sh - 2*margin
+      let treeMap = treemap()
+      .size([_w, _h])
+      .round(true);
 
-    // let fUrls = {}
-    // let filters = colors.map(c => {
-    //   let e = emboss()
-    //   .color(c)
-    //   .strength(1.0)
-    //   fUrls[c] = e.url();
-    //   return e;
-    // })
-    // filters.forEach(f => g.call(f))
+      var hr = hierarchy(data)
+        .sum(d => d.v)
+
+      treeMap(hr);
 
 
-    let _w = width - 2*margin
-    let _h = sh - 2*margin
-    let treeMap = treemap()
-    .size([_w, _h])
-    .round(true);
+      let colors = _makeFillFn();
+      // let w = this._div.node().offsetWidth;
+      // let h = select('#home').node().offsetHeight;
 
-    var hr = hierarchy(data)
-      .sum(d => {
-        return d.v
-      })
+      let ff = d => d.children ? _background : colors(d.data.v)
+      let nodes = g.selectAll('g.node').data(hr.leaves(), d => d.data.l)
+      nodes.exit().remove();
+      nodes = nodes.enter()
+        .append('g')
+          .attr('class', 'node')
+          .attr('id', d => d.data.l)
+          .attr('transform', d => `translate(${d.x0 },${d.y0 })`)
+      
+      nodes.append('rect')
+          .attr('class', 'node-rect')
+          .attr('width', d => d.x1 - d.x0 )
+          .attr('height', d => d.y1 - d.y0)
+          .attr('fill', ff)
 
-    treeMap(hr);
-
-
-    let colors = _makeFillFn();
-    // let w = this._div.node().offsetWidth;
-    // let h = select('#home').node().offsetHeight;
-
-    let ff = d => { 
-      return d.data.l === 'no-trackers-found' || d.children ? 'white' : colors(d.data.v)
-    }
-    let nodes = g.selectAll('g.node').data(hr.leaves(), d => d.data.l)
-    nodes.exit().remove();
-    nodes = nodes.enter()
-      .append('g')
-        .attr('class', 'node')
-        .attr('id', d => d.data.l)
-        .attr('transform', d => `translate(${d.x0 },${d.y0 })`)
-    
-    nodes.append('rect')
-        .attr('class', 'node-rect')
-        .attr('width', d => d.x1 - d.x0 )
-        .attr('height', d => d.y1 - d.y0)
-        .attr('fill', ff)
-
-    if(appendText){
-      let _text = () => textValue
-      if(textValue === null){
-        _text = d => d.data.v
-      } 
-      nodes.append('text')
-        .attr('x', d => 15)
-        .attr('y', d => 25)
-        .style('font-size', d => {
-          let _w = d.x1-d.x0
-          return (_w < 5 ? '10' : _w < 20 ? '15' : '20' ) + 'px'
-        })
-        .text(_text)
-    }
-
-    if(appendImage){
-      let _link = () => imageLink
-      if(imageLink === null){
-        _link = d => d.data.u
-      }
-      let _imgMargin = 25;
-      let w = d => d.x1 - d.x0
-      let h = d => d.y1 - d.y0
-      let _imgD = d => {
-        let f = d => d - 2*_imgMargin;
-        if(f(w(d)) > 400 && f(h(d)) > 400){
-          return 400;
-        }else {
-          return Math.min(w(d), h(d))/400 * Math.min(w(d), h(d))
-        }
-      }
-      nodes
-        .append('image')
-          .attr('class', 'node-image')
-          .attr('id', (d,i) => `image-${i}`)
-          .attr('transform', d=> `translate(${w(d)/2 - _imgD(d)/2},${ h(d)/2 - _imgD(d)/2})`)
-          // .attr('x', d => w(d)/2 - _imgD(d)/2)
-          // .attr('y', d => h(d)/2 - _imgD(d)/2)
-          .attr('width', _imgD)
-          .attr('height', _imgD)
-          // .attr('filter', d => fUrls[ff(d)])
-          .attr('xlink:href', (d,i) => {
-            if(imageFallbackLink){
-              checkImage(_link(d), ()=>{}, ()=>{nodes.select(`#image-${i}`).attr('xlink:href', imageFallbackLink)})
-            }
-            return _link(d);
+      if(appendText){
+        let _text = () => textValue
+        if(textValue === null){
+          _text = d => d.data.v
+        } 
+        nodes.append('text')
+          .attr('x', d => 15)
+          .attr('y', d => 25)
+          .style('font-size', d => {
+            let _w = d.x1-d.x0
+            return (_w < 5 ? '10' : _w < 20 ? '15' : '20' ) + 'px'
           })
-    }
+          .text(_text)
+      }
+
+      if(appendImage){
+        let _link = () => imageLink
+        if(imageLink === null){
+          _link = d => d.data.u
+        }
+        // doing some calculations to better position the image
+        let _imgMargin = 10;
+        let _maxSize = 400;
+        let w = d => d.x1 - d.x0
+        let h = d => d.y1 - d.y0
+        let _imgD = d => {
+          let f = d => d - 2*_imgMargin;
+          if(f(w(d)) > _maxSize && f(h(d)) > _maxSize){
+            return _maxSize;
+          }else {
+            return Math.min(w(d), h(d)) - Math.min(w(d), h(d))/_maxSize * Math.min(w(d), h(d))
+          }
+        }
+
+        let _filterLookupFn = ()=>{};
+        if(filter && filtersMap.hasOwnProperty(filter)){
+          let createFilter = (c) => {
+            let fid = `filter-${filter}`;
+            if (id) fid = `${fid}-${id}-${c ? c.slice(1) : ''}`;
+            let e = filtersMap[filter](fid).strength(1.0)
+            if(c){
+              e.color(c)
+            }
+            return e;
+          }
+          if(filter === 'emboss'){
+            // generate filters for all the colours
+            let filterLookup = {}
+            let filtersForColors = _makeFillFn(true).map(c => {
+              var f = createFilter(c)
+              filterLookup[c] = f.url();
+              return f;
+            })
+            _filterLookupFn = d => filterLookup[colors(d.data.v)]
+            filtersForColors.forEach(f => snode.call(f))
+          }else{
+            let f = createFilter();
+            _filterLookupFn = () => f.url()
+            snode.call(f)
+          }
+        }
+        nodes
+          .append('image')
+            .attr('class', 'node-image')
+            .attr('id', (d,i) => `image-${i}`)
+            .attr('transform', d=> `translate(${w(d)/2 - _imgD(d)/2},${ h(d)/2 - _imgD(d)/2})`)
+            // .attr('x', d => w(d)/2 - _imgD(d)/2)
+            // .attr('y', d => h(d)/2 - _imgD(d)/2)
+            .attr('width', _imgD)
+            .attr('height', _imgD)
+            .attr('filter', _filterLookupFn)
+            .attr('xlink:href', (d,i) => {
+              if(imageFallbackLink){
+                checkImage(_link(d), ()=>{}, ()=>{nodes.select(`#image-${i}`).attr('xlink:href', imageFallbackLink)})
+              }
+              return _link(d);
+            })
+      }
     
-    nodes = nodes.merge(nodes)
+      nodes = nodes.merge(nodes)
 
-    if(transition){
-      nodes = nodes.transition(context)
-    }
-    nodes.selectAll('.node').attr('transform', d => `translate(${d.x0},${d.y0})`)
-    nodes.selectAll('.node-rect')
-        .attr('width', d => d.x1 - d.x0)
-        .attr('height', d => d.y1 - d.y0)
-        .attr('fill', ff)
-
+      if(transition){
+        nodes = nodes.transition(context)
+      }
+      nodes.selectAll('.node').attr('transform', d => `translate(${d.x0},${d.y0})`)
+      nodes.selectAll('.node-rect')
+          .attr('width', d => d.x1 - d.x0)
+          .attr('height', d => d.y1 - d.y0)
+          .attr('fill', ff)
 
     })
   }
@@ -278,9 +294,12 @@ export default function chart(id) {
   _impl.imageFallbackLink = function(_) {
     return arguments.length ? (imageFallbackLink = _, _impl) : imageFallbackLink;
   };
+
+  _impl.filter = function(_) {
+    return arguments.length ? (filter = _, _impl) : filter;
+  };
   //TODO:
   //1) add default css with stroke and stroke-width
-  //3) make type of filter an option.
   //4) height and sh variable
   return _impl;
 }
