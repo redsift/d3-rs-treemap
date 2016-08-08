@@ -113,17 +113,46 @@ export default function chart(id) {
       // let h = select('#home').node().offsetHeight;
 
       let ff = d => d.children ? _background : colors(d.data.v)
+
       let nodes = g.selectAll('g.node').data(hr.leaves(), d => d.data.l)
-      nodes.exit().remove();
-      nodes = nodes.enter()
+      let nodesExit = nodes.exit()
+
+      let nodesEntering = nodes.enter()
         .append('g')
           .attr('class', 'node')
           .attr('id', d => d.data.l)
-          .attr('transform', d => `translate(${d.x0 },${d.y0 })`)
+          .attr('transform', d => `translate(${d.x0},${d.y0})`)
       
-      nodes.append('rect')
-          .attr('class', 'node-rect')
-          .attr('width', d => d.x1 - d.x0 )
+      nodesEntering.append('rect')
+
+      if(appendText){
+        nodesEntering.append('text')
+           .attr('class', 'node-text')
+      }
+
+      if(appendImage){
+        nodesEntering.append('image')
+          .attr('id', (d,i) => `image-${d.data.l}`)
+      }
+
+      let nodesEU = nodesEntering.merge(nodes)
+
+    
+      if(transition){
+        nodesEU = nodesEU.transition(context)
+        nodesExit = nodesExit.transition(context)
+      }
+
+      nodesEU.attr('transform', d => `translate(${d.x0},${d.y0})`)
+      nodesExit.select('rect')
+        .attr('x', d => d.x1)
+        .attr('y', d => d.y1)
+        .attr('width', d =>d.x0)
+        .attr('height', d=> d.y0)
+        .remove()
+
+      nodesEU.select('rect')
+          .attr('width', d => d.x1 - d.x0)
           .attr('height', d => d.y1 - d.y0)
           .attr('fill', ff)
 
@@ -132,14 +161,13 @@ export default function chart(id) {
         if(textValue === null){
           _text = d => d.data.v
         } 
-        nodes.append('text')
-          .attr('class', 'node-text')
-          .attr('transform', d => `translate(${(d.x1-d.x0)/2 },${(d.y1-d.y0)/2})`)
-          .style('font-size', d => {
-            let _w = d.x1-d.x0
-            return (_w < 5 ? '10' : _w < 20 ? '15' : '20' ) + 'px'
-          })
-          .text(_text)
+        nodesEU.select('text')
+            .attr('transform', d => `translate(${(d.x1-d.x0)/2 },${(d.y1-d.y0)/2})`)
+            .style('font-size', d => {
+              let _w = d.x1-d.x0
+              return (_w < 5 ? '10' : _w < 20 ? '15' : '20' ) + 'px'
+            })
+            .text(_text)
       }
 
       if(appendImage){
@@ -188,10 +216,7 @@ export default function chart(id) {
             snode.call(f)
           }
         }
-        nodes
-          .append('image')
-            .attr('class', 'node-image')
-            .attr('id', (d,i) => `image-${i}`)
+        nodesEU.select('image')
             .attr('transform', d=> `translate(${w(d)/2 - _imgD(d)/2},${ h(d)/2 - _imgD(d)/2})`)
             // .attr('x', d => w(d)/2 - _imgD(d)/2)
             // .attr('y', d => h(d)/2 - _imgD(d)/2)
@@ -205,17 +230,6 @@ export default function chart(id) {
               return _link(d);
             })
       }
-    
-      nodes = nodes.merge(nodes)
-
-      if(transition){
-        nodes = nodes.transition(context)
-      }
-      nodes.selectAll('.node').attr('transform', d => `translate(${d.x0},${d.y0})`)
-      nodes.selectAll('.node-rect')
-          .attr('width', d => d.x1 - d.x0)
-          .attr('height', d => d.y1 - d.y0)
-          .attr('fill', ff)
 
       let _style = style;
       if (_style == null) {
@@ -227,7 +241,6 @@ export default function chart(id) {
       styleEl.exit().remove();
       styleEl = styleEl.enter().append('style').attr('type', 'text/css').merge(styleEl);
       styleEl.text(_style);
-      console.log(display[theme].background)
     })
   }
 
