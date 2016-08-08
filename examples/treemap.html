@@ -16,15 +16,30 @@
 
     <script src="https://d3js.org/d3.v4.js"></script>
     <script src="//static.redsift.io/reusable/d3-rs-svg/latest/d3-rs-svg.umd-es2015.min.js"></script>
-    <script src="./tracker_data.js"></script>
+    <script src="./test_assets/tracker_data.js"></script>
     <script src="./d3-rs-treemap.umd-es2015.js"></script>
     <script>
       'use strict';
 
-      var first = d3_rs_treemap.html('one');
-      d3.select('#elm')
-        .datum(tracker_data)
-        .call(first);
+      var data10 = JSON.parse(JSON.stringify(tracker_data));
+      data10.children = tracker_data.children.slice(0,10)
+
+      // Data structures to test different types of transitions
+      // changing values of existing elements
+      // var changedValues = JSON.parse(JSON.stringify(data10));
+      // changedValues.children.forEach(d => {
+      //   d.v = d.v > 10 ? d.v*0.4 : d.v*10;
+      // })
+
+      // adding more elements
+      // var data20 = JSON.parse(JSON.stringify(tracker_data));
+      // data20.children = tracker_data.children.slice(0,20)
+
+
+      var first = d3_rs_treemap.html('one').margin(0).theme('dark').appendImage(true).imageFallbackLink("test_assets/fa-eye@3x.png");
+      var dElm = d3.select('#elm').datum(data10).call(first);
+
+      // dElm.datum(changedValues).transition().delay(2500).duration(1000).call(first)
     </script>
   </body>
 </html>
