@@ -30,22 +30,6 @@ export default function chart(id) {
       imCache = {},
       rqs = [];
 
-  // function checkImage(imageSrc) {
-  //   var p = new Promise((ok,ko) => {
-  //     var img = new Image();
-  //     img.onload = () => {
-  //       console.log(this.src)
-  //       imCache[this.src] = true;
-  //       ok();
-  //     }
-  //     img.onerror = () => {
-  //       imCache[this.src] = false;
-  //       ko();
-  //     }
-  //     img.src = imageSrc;
-  //   })
-  //   rqs.push(p);
-  // }
   function _makeFillFn() {
     let colors = () => fill;
     if (fill == null) {
@@ -296,7 +280,6 @@ export default function chart(id) {
   };
   //TODO:
   //1) add default css with stroke and stroke-width
-  //2) add options for appending text and images
   //3) make type of filter an option.
   //4) height and sh variable
   return _impl;
