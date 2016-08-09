@@ -17,29 +17,37 @@
     <script>
       'use strict';
 
-      var data10 = JSON.parse(JSON.stringify(tracker_data));
-      data10.children = tracker_data.children.slice(0,10)
+      var data1 = JSON.parse(JSON.stringify(tracker_data));
+      data1.children = tracker_data.children.slice(0,1)
+
+      var data5 = JSON.parse(JSON.stringify(tracker_data));
+      data5.children = tracker_data.children.slice(0,5)
+
+      var data5Changed = JSON.parse(JSON.stringify(data5));
+      data5Changed.children[1].v += 50
 
       // Data structures to test different types of transitions
       // changing values of existing elements
-      // var changedValues = JSON.parse(JSON.stringify(data10));
-      // changedValues.children.forEach(d => {
-      //   d.v = d.v > 10 ? d.v*0.4 : d.v*10;
-      // })
+      var changedValues = JSON.parse(JSON.stringify(data5));
+      changedValues.children.forEach(d => {
+        d.v = d.v > 10 ? d.v*0.4 : d.v*10;
+      })
 
-      // adding more elements
-      // var data20 = JSON.parse(JSON.stringify(tracker_data));
-      // data20.children = tracker_data.children.slice(0,20)
+
+      var data20 = JSON.parse(JSON.stringify(tracker_data));
+      data20.children = tracker_data.children.slice(10,30)
 
 
       var first = d3_rs_treemap.html('one')
+        // .appendText(true)
         .appendImage(true)
         .imageFallbackLink("test_assets/fa-eye@3x.png")
-        .filter('emboss');
 
-      var dElm = d3.select('#elm').datum(tracker_data).call(first);
+      var dElm = d3.select('#elm').datum(data1).call(first);
+      dElm.datum(data5).transition().delay(1500).duration(1000).call(first.filter('emboss'))
+      dElm.datum(data5Changed).transition().delay(3000).duration(1000).call(first.filter('greyscale'))
+      dElm.datum(data20).transition().delay(4500).duration(1000).call(first.filter(null))
 
-      // dElm.datum(changedValues).transition().delay(2500).duration(1000).call(first)
     </script>
   </body>
 </html>
