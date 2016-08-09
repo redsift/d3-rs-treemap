@@ -73,7 +73,7 @@ export default function chart(id) {
       _background = display[theme].background;
     }
       
-    selection.each(function(data) {
+    selection.each(function() {
       let node = select(this);
       let sh = height || Math.round(width * DEFAULT_ASPECT);
       
@@ -95,6 +95,8 @@ export default function chart(id) {
         g = rootG.append('g').attr('class', classed).attr('id', id);
       }
 
+      let data = g.datum() || [];
+      
       let _w = width - 2*margin
       let _h = sh - 2*margin
       let treeMap = treemap()
