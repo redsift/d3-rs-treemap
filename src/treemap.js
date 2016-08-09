@@ -131,7 +131,7 @@ export default function chart(id) {
            .attr('class', 'node-text')
       }
 
-      let _imageId = (d,i) => `image-${i}-${d.data.l.slice(0,1)}`
+      let _imageId = (d,i) => `image-${i}-${d.data.l ? d.data.l.slice(0,1) : ''}`
       if(appendImage){
         nodesEntering.append('image')
           .attr('id', _imageId)
@@ -222,6 +222,9 @@ export default function chart(id) {
           }
         }
         let findImageFn = (d,i) =>{
+          if(!_link(d)){
+            return '';
+          }
           if(imageFallbackLink){
             checkImage(
               _link(d), 

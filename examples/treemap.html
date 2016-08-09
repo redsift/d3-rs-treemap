@@ -48,6 +48,7 @@
       dElm.datum(data5Changed).transition().delay(3000).duration(1000).call(first.filter('greyscale'))
       dElm.datum(data20).transition().delay(4500).duration(1000).call(first.filter(null))
 
+      d3.select('#elm').datum([]).call(d3_rs_treemap.html('two').appendText(true))
     </script>
   </body>
 </html>
