@@ -31,7 +31,6 @@ export default function chart(id) {
       margin = DEFAULT_MARGIN,
       style = undefined,
       scale = 1.0,
-      inset = null,
       fill = null,
       appendText = null,
       textValue = null,
@@ -51,7 +50,7 @@ export default function chart(id) {
     }
 
     let t = scaleOrdinal(colors_array)
-    let colors_fn = (d,i) => t(d);
+    let colors_fn = d => t(d);
     if(typeof fill === 'function'){
       colors_fn = fill;
     }
@@ -130,9 +129,10 @@ export default function chart(id) {
            .attr('class', 'node-text')
       }
 
+      let _imageId = (d,i) => `image-${i}-${d.data.l.slice(0,1)}`
       if(appendImage){
         nodesEntering.append('image')
-          .attr('id', (d,i) => `image-${d.data.l}`)
+          .attr('id', _imageId)
       }
 
       let nodesEU = nodesEntering.merge(nodes)
@@ -149,7 +149,9 @@ export default function chart(id) {
         .attr('y', d => d.y1)
         .attr('width', d =>d.x0)
         .attr('height', d=> d.y0)
-        .remove()
+
+      nodesExit.selectAll('image').attr('xlink:href','')
+      nodesExit.remove()
 
       nodesEU.select('rect')
           .attr('width', d => d.x1 - d.x0)
@@ -176,17 +178,18 @@ export default function chart(id) {
           _link = d => d.data.u
         }
         // doing some calculations to better position the image
-        let _imgMargin = 10;
         let _maxSize = 400;
         let w = d => d.x1 - d.x0
         let h = d => d.y1 - d.y0
         let _imgD = d => {
-          let f = d => d - 2*_imgMargin;
-          if(f(w(d)) > _maxSize && f(h(d)) > _maxSize){
-            return _maxSize;
-          }else {
-            return Math.min(w(d), h(d)) - Math.min(w(d), h(d))/_maxSize * Math.min(w(d), h(d))
-          }
+          let i=0
+          let r = _maxSize
+          const c = Math.min(w(d), h(d))
+          while(r >= c){
+            r = _maxSize/Math.pow(2,i)
+            i++
+          } 
+          return r;
         }
 
         let _filterLookupFn = ()=>{};
@@ -216,19 +219,28 @@ export default function chart(id) {
             snode.call(f)
           }
         }
+        let findImageFn = (d,i) =>{
+          if(imageFallbackLink){
+            checkImage(
+              _link(d), 
+              ()=>{
+                g.select(`image#${_imageId(d,i)}`).attr('xlink:href', _link(d))
+              },
+              ()=>{
+                g.select(`image#${_imageId(d,i)}`).attr('xlink:href', imageFallbackLink)
+              })
+          }
+          return _link(d)
+        } 
         nodesEU.select('image')
-            .attr('transform', d=> `translate(${w(d)/2 - _imgD(d)/2},${ h(d)/2 - _imgD(d)/2})`)
-            // .attr('x', d => w(d)/2 - _imgD(d)/2)
-            // .attr('y', d => h(d)/2 - _imgD(d)/2)
+            .attr('x', d => Math.round(w(d)/2 - _imgD(d)/2))
+            .attr('y', d => Math.round(h(d)/2 - _imgD(d)/2))
             .attr('width', _imgD)
             .attr('height', _imgD)
             .attr('filter', _filterLookupFn)
-            .attr('xlink:href', (d,i) => {
-              if(imageFallbackLink){
-                checkImage(_link(d), ()=>{}, ()=>{nodes.select(`#image-${i}`).attr('xlink:href', imageFallbackLink)})
-              }
-              return _link(d);
-            })
+            .attr('xlink:href', findImageFn)
+
+        nodesEU.on('end', findImageFn)
       }
 
       let _style = style;
