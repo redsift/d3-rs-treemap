@@ -213,7 +213,7 @@ export default function chart(id) {
               filterLookup[c] = f.url();
               return f;
             })
-            _filterLookupFn = d => filterLookup[colors(d.data.v)]
+            _filterLookupFn = d => filterLookup[colors(d.data.l)]
             filtersForColors.forEach(f => snode.call(f))
           }else{
             let f = createFilter();
