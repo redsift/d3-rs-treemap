@@ -113,7 +113,7 @@ export default function chart(id) {
       // let w = this._div.node().offsetWidth;
       // let h = select('#home').node().offsetHeight;
 
-      let ff = d => d.children ? _background : colors(d.data.v)
+      let ff = d => d.children ? _background : colors(d.data.l)
 
       let nodes = g.selectAll('g.node').data(hr.leaves(), d => d.data.l)
       let nodesExit = nodes.exit()
