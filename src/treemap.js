@@ -157,6 +157,8 @@ export default function chart(id) {
       nodesEU.attr('transform', d => `translate(${d.x0},${d.y0})`)
 
       nodesEU.select('rect')
+          .attr('x', 0)
+          .attr('y', 0)
           .attr('width', d => d.x1 - d.x0)
           .attr('height', d => d.y1 - d.y0)
           .attr('fill', ff)
