@@ -145,7 +145,6 @@ export default function chart(id) {
         nodesExit = nodesExit.transition(context)
       }
 
-      nodesEU.attr('transform', d => `translate(${d.x0},${d.y0})`)
       nodesExit.select('rect')
         .attr('x', d => d.x1)
         .attr('y', d => d.y1)
@@ -154,6 +153,8 @@ export default function chart(id) {
 
       nodesExit.selectAll('image').attr('xlink:href','')
       nodesExit.remove()
+
+      nodesEU.attr('transform', d => `translate(${d.x0},${d.y0})`)
 
       nodesEU.select('rect')
           .attr('width', d => d.x1 - d.x0)
