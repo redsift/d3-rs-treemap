@@ -148,8 +148,8 @@ export default function chart(id) {
       nodesExit.select('rect')
         .attr('x', d => d.x1)
         .attr('y', d => d.y1)
-        .attr('width', d =>d.x0)
-        .attr('height', d=> d.y0)
+        .attr('width', 0)
+        .attr('height',0)
 
       nodesExit.selectAll('image').attr('xlink:href','')
       nodesExit.remove()
