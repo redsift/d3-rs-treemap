@@ -122,8 +122,7 @@ export default function chart(id) {
         .append('g')
           .attr('class', 'node')
           .attr('id', d => d.data.l)
-          .attr('transform', d => `translate(${d.x0},${d.y0})`)
-      
+
       nodesEntering.append('rect')
 
       if(appendText){
