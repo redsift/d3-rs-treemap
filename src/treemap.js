@@ -199,7 +199,10 @@ export default function chart(id) {
           let createFilter = (c) => {
             let fid = `filter-${filter}`;
             if (id) fid = `${fid}-${id}-${c ? c.slice(1) : ''}`;
-            let e = filtersMap[filter](fid).strength(1.0)
+            let e = filtersMap[filter](fid)
+            if(filter !== 'shadow'){
+              e.strength(1.0)
+            }
             if(c){
               e.color(c)
             }
