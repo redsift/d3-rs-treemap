@@ -239,6 +239,7 @@ export default function chart(id) {
               ()=>{
                 g.select(`image#${_imageId(d,i)}`).attr('xlink:href', imageFallbackLink)
               })
+            return imageFallbackLink;
           }
           return _link(d)
         }
