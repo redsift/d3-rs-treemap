@@ -60,8 +60,8 @@ export default function chart(id) {
 
   function checkImage(imageSrc, good, bad) {
     var img = new Image();
-    img.onload = () => { console.log('checkImage: good: ', imageSrc); good(); };
-    img.onerror = () => { console.log('checkImage: bad: ', imageSrc); bad(); };
+    img.onload = () => good;
+    img.onerror = () => bad;
     img.src = imageSrc;
   }
 
@@ -130,7 +130,7 @@ export default function chart(id) {
         nodesEntering.append('text')
            .attr('class', 'node-text')
       }
-      let _imageId = (d,i) => `image-${ base64.encode(d.data.u || d.data.l || d.data.v).replace(/\+/g, '-').replace(/\//g, '_').replace(/\=+$/, '') }`
+      let _imageId = (d) => `image-${ base64.encode(d.data.u || d.data.l || d.data.v).replace(/\+/g, '-').replace(/\//g, '_').replace(/\=+$/, '') }`
       if(appendImage){
         nodesEntering.append('image')
           .attr('id', _imageId)
@@ -234,11 +234,9 @@ export default function chart(id) {
             checkImage(
               _link(d),
               ()=>{
-                console.log('***GOOD: ', _imageId(d,i), _link(d));
                 g.select(`image#${_imageId(d,i)}`).attr('xlink:href', _link(d))
               },
               ()=>{
-                console.log('***BAD: ', _imageId(d,i), _link(d));
                 g.select(`image#${_imageId(d,i)}`).attr('xlink:href', imageFallbackLink)
               })
           }
