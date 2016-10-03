@@ -4,13 +4,14 @@
 import { select } from 'd3-selection';
 import { treemap, hierarchy } from 'd3-hierarchy';
 import { scaleOrdinal} from 'd3-scale';
-import { 
-  presentation10, 
+import {
+  presentation10,
   display,
   fonts,
   widths,
   shadow, emboss, greyscale } from '@redsift/d3-rs-theme';
 import { html as svg } from '@redsift/d3-rs-svg';
+import base64 from 'base-64';
 
 const DEFAULT_SIZE = 960;
 const DEFAULT_ASPECT = 1060 / 960;
@@ -59,8 +60,8 @@ export default function chart(id) {
 
   function checkImage(imageSrc, good, bad) {
     var img = new Image();
-    img.onload = good;
-    img.onerror = bad;
+    img.onload = () => { console.log('checkImage: good: ', imageSrc); good(); };
+    img.onerror = () => { console.log('checkImage: bad: ', imageSrc); bad(); };
     img.src = imageSrc;
   }
 
@@ -72,11 +73,11 @@ export default function chart(id) {
     if (_background === undefined) {
       _background = display[theme].background;
     }
-      
+
     selection.each(function() {
       let node = select(this);
       let sh = height || Math.round(width * DEFAULT_ASPECT);
-      
+
       // SVG element
       let sid = null;
       if (id) sid = 'svg-' + id;
@@ -86,7 +87,7 @@ export default function chart(id) {
         tnode = node.transition(context);
       }
       tnode.call(root);
-      
+
       let snode = node.select(root.self());
       let rootG = snode.select(root.child());
 
@@ -96,7 +97,7 @@ export default function chart(id) {
       }
 
       let data = g.datum() || [];
-      
+
       let _w = width - 2*margin
       let _h = sh - 2*margin
       let treeMap = treemap()
@@ -129,8 +130,7 @@ export default function chart(id) {
         nodesEntering.append('text')
            .attr('class', 'node-text')
       }
-
-      let _imageId = (d,i) => `image-${i}-${d.data.l ? d.data.l.slice(0,1) : ''}`
+      let _imageId = (d,i) => `image-${ base64.encode(d.data.u || d.data.l || d.data.v).replace(/\+/g, '-').replace(/\//g, '_').replace(/\=+$/, '') }`
       if(appendImage){
         nodesEntering.append('image')
           .attr('id', _imageId)
@@ -138,7 +138,7 @@ export default function chart(id) {
 
       let nodesEU = nodesEntering.merge(nodes)
 
-    
+
       if(transition){
         nodesEU = nodesEU.transition(context)
         nodesExit = nodesExit.transition(context)
@@ -166,7 +166,7 @@ export default function chart(id) {
         let _text = () => textValue
         if(textValue === null){
           _text = d => d.data.v
-        } 
+        }
         nodesEU.select('text')
             .attr('transform', d => `translate(${(d.x1-d.x0)/2 },${(d.y1-d.y0)/2})`)
             .style('font-size', d => {
@@ -192,7 +192,7 @@ export default function chart(id) {
           while(r >= c){
             r = _maxSize/Math.pow(2,i)
             i++
-          } 
+          }
           return r;
         }
 
@@ -232,16 +232,18 @@ export default function chart(id) {
           }
           if(imageFallbackLink){
             checkImage(
-              _link(d), 
+              _link(d),
               ()=>{
+                console.log('***GOOD: ', _imageId(d,i), _link(d));
                 g.select(`image#${_imageId(d,i)}`).attr('xlink:href', _link(d))
               },
               ()=>{
+                console.log('***BAD: ', _imageId(d,i), _link(d));
                 g.select(`image#${_imageId(d,i)}`).attr('xlink:href', imageFallbackLink)
               })
           }
           return _link(d)
-        } 
+        }
         nodesEU.select('image')
             .attr('x', d => Math.round(w(d)/2 - _imgD(d)/2))
             .attr('y', d => Math.round(h(d)/2 - _imgD(d)/2))
@@ -272,15 +274,15 @@ export default function chart(id) {
 
   _impl.defaultStyle = () => `
                   ${fonts.variable.cssImport}
-                  ${fonts.fixed.cssImport}  
+                  ${fonts.fixed.cssImport}
 
-                  ${_impl.self()} text { 
+                  ${_impl.self()} text {
                                         font-family: ${fonts.fixed.family};
                                         font-size: ${fonts.fixed.sizeForWidth(width)};
-                                        font-weight: ${fonts.fixed.weightMonochrome}; 
-                                        fill: ${display[theme].text}; 
+                                        font-weight: ${fonts.fixed.weightMonochrome};
+                                        fill: ${display[theme].text};
                                       }
-                  ${_impl.self()} .node-text { 
+                  ${_impl.self()} .node-text {
                                         text-anchor: middle;
                                       }
                   ${_impl.self()} .node {
@@ -303,11 +305,11 @@ export default function chart(id) {
 
   _impl.height = function(_) {
     return arguments.length ? (height = _, _impl) : height;
-  }; 
+  };
 
   _impl.scale = function(_) {
     return arguments.length ? (scale = _, _impl) : scale;
-  }; 
+  };
 
   _impl.margin = function(_) {
     return arguments.length ? (margin = _, _impl) : margin;

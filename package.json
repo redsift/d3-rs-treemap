@@ -1,6 +1,6 @@
 {
   "name": "@redsift/d3-rs-treemap",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "A TreeMap visual component made with D3v4.",
   "keywords": [
     "redsift",
@@ -29,6 +29,7 @@
   "dependencies": {
     "@redsift/d3-rs-svg": "~0.2.5",
     "@redsift/d3-rs-theme": "^0.4.2",
+    "base-64": "^0.1.0",
     "d3-hierarchy": "^1.0.2",
     "d3-scale": "^1.0.1",
     "d3-selection": "^1.0.0"
