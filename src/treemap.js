@@ -240,7 +240,7 @@ export default function chart(id) {
             snode.call(f)
           }
         }
-        let findImageFn = function(d,i){
+        let findImageFn = function(d){
           if(!_link(d)){
             return;
           }

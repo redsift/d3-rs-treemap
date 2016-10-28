@@ -1,6 +1,6 @@
 {
   "name": "@redsift/d3-rs-treemap",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "A TreeMap visual component made with D3v4.",
   "keywords": [
     "redsift",
