@@ -65,7 +65,7 @@ export default function chart(id) {
       return;
     }
     linkCache[imageSrc] = new Promise((ok,ko) => {
-      var img = new Image();
+      let img = new Image();
       img.onload = ok;
       img.onerror = ko;
       img.src = imageSrc;
@@ -117,7 +117,7 @@ export default function chart(id) {
       .size([_w, _h])
       .round(true);
 
-      var hr = hierarchy(data)
+      let hr = hierarchy(data)
         .sum(d => d.v)
         .each(d => {
           if(d.parent && imageFallbackLink){
@@ -228,7 +228,7 @@ export default function chart(id) {
             // generate filters for all the colours
             let filterLookup = {}
             let filtersForColors = _makeFillFn(true).map(c => {
-              var f = createFilter(c)
+              let f = createFilter(c)
               filterLookup[c] = f.url();
               return f;
             })
@@ -267,8 +267,8 @@ export default function chart(id) {
         _style = _impl.defaultStyle();
       }
 
-      var defsEl = snode.select('defs');
-      var styleEl = defsEl.selectAll('style').data(_style ? [ _style ] : []);
+      let defsEl = snode.select('defs');
+      let styleEl = defsEl.selectAll('style').data(_style ? [ _style ] : []);
       styleEl.exit().remove();
       styleEl = styleEl.enter().append('style').attr('type', 'text/css').merge(styleEl);
       styleEl.text(_style);
