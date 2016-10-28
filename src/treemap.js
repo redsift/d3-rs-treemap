@@ -23,6 +23,8 @@ const filtersMap = {
   'greyscale': greyscale
 }
 
+let linkCache = {};
+
 export default function chart(id) {
   let classed = 'chart-treemap',
       theme = 'light',
@@ -58,11 +60,17 @@ export default function chart(id) {
     return onlyArray ? colors_array : colors_fn
    }
 
-  function checkImage(imageSrc, good, bad) {
-    var img = new Image();
-    img.onload = good;
-    img.onerror = bad;
-    img.src = imageSrc;
+  function checkImagePromise(imageSrc) {
+    if(linkCache.hasOwnProperty(imageSrc)){
+      return;
+    }
+    linkCache[imageSrc] = new Promise((ok,ko) => {
+      var img = new Image();
+      img.onload = ok;
+      img.onerror = ko;
+      img.src = imageSrc;
+      return;
+    })
   }
 
   function _impl(context) {
@@ -100,12 +108,22 @@ export default function chart(id) {
 
       let _w = width - 2*margin
       let _h = sh - 2*margin
+      let _link = () => imageLink
+      if(imageLink === null){
+        _link = d => d.data.u
+      }
+
       let treeMap = treemap()
       .size([_w, _h])
       .round(true);
 
       var hr = hierarchy(data)
         .sum(d => d.v)
+        .each(d => {
+          if(d.parent && imageFallbackLink){
+            checkImagePromise(_link(d));
+          }
+        })
 
       treeMap(hr);
 
@@ -177,10 +195,6 @@ export default function chart(id) {
       }
 
       if(appendImage){
-        let _link = () => imageLink
-        if(imageLink === null){
-          _link = d => d.data.u
-        }
         // doing some calculations to better position the image
         let _maxSize = 400;
         let w = d => d.x1 - d.x0
@@ -226,32 +240,26 @@ export default function chart(id) {
             snode.call(f)
           }
         }
-        let findImageFn = (d,i) =>{
+        let findImageFn = function(d,i){
           if(!_link(d)){
-            return '';
+            return;
           }
-          if(imageFallbackLink){
-            checkImage(
-              _link(d),
-              ()=>{
-                g.select(`image#${_imageId(d,i)}`).attr('xlink:href', _link(d))
-              },
-              ()=>{
-                g.select(`image#${_imageId(d,i)}`).attr('xlink:href', imageFallbackLink)
-              })
-            return imageFallbackLink;
+          if(!imageFallbackLink){
+            return _link(d);
           }
-          return _link(d)
+          let that = this;
+          linkCache[_link(d)]
+            .then(()=>{ select(that).attr('xlink:href', _link(d)) })
+            .catch(()=>{ select(that).attr('xlink:href', imageFallbackLink) })
         }
+
         nodesEU.select('image')
             .attr('x', d => Math.round(w(d)/2 - _imgD(d)/2))
             .attr('y', d => Math.round(h(d)/2 - _imgD(d)/2))
             .attr('width', _imgD)
             .attr('height', _imgD)
             .attr('filter', _filterLookupFn)
-            .attr('xlink:href', findImageFn)
-
-        nodesEU.on('end', findImageFn)
+            .each(findImageFn)
       }
 
       let _style = style;
