@@ -217,10 +217,10 @@ export default function chart(id) {
             if (id) fid = `${fid}-${id}-${c ? c.slice(1) : ''}`;
             let e = filtersMap[filter](fid)
             if(filter !== 'shadow'){
-              e.strength(1.0)
+              e.strength(1.0);
             }
             if(c){
-              e.color(c)
+              e.color(c);
             }
             return e;
           }
@@ -272,7 +272,7 @@ export default function chart(id) {
       styleEl.exit().remove();
       styleEl = styleEl.enter().append('style').attr('type', 'text/css').merge(styleEl);
       styleEl.text(_style);
-    })
+    })//selection ends
   }
 
   _impl.self = function() { return 'g' + (id ?  '#' + id : '.' + classed); };
