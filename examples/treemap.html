@@ -47,10 +47,24 @@
         .imageFallbackLink("test_assets/fa-eye.png")
 
       var dElm = d3.select('#elm').datum(data1).call(first);
-      dElm.datum(data5).transition().delay(1500).duration(1000).call(first.filter('emboss'))
-      dElm.datum(data5Changed).transition().delay(3000).duration(1000).call(first.filter('greyscale'))
-      dElm.datum(data20).transition().delay(4500).duration(1000).call(first.filter(null))
-      dElm.datum(data30).transition().delay(6000).duration(1000).call(first.filter('greyscale'))
+      dElm.datum(data5)
+      .transition().delay(1500).duration(1000)
+      .call(first.filter('emboss'))
+      .on('end', function(){
+        dElm.datum(data5Changed)
+        .transition().delay(1500).duration(1000)
+        .call(first.filter('greyscale'))
+        .on('end', function(){
+          dElm.datum(data20)
+          .transition().delay(1500).duration(1000)
+          .call(first.filter(null))
+          .on('end', function(){
+            dElm.datum(data30)
+            .transition().delay(1500).duration(1000)
+            .call(first.filter('greyscale'))
+          });
+        });
+      })
 
       d3.select('#elm').datum([]).call(d3_rs_treemap.html('two').appendText(true))
     </script>
